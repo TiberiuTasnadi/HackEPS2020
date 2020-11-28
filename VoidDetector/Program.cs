@@ -18,7 +18,7 @@ namespace VoidDetector
 
         static readonly string _imagesFolder = Path.Combine(_assetsPath, "images");
         static readonly string _trainTagsTsv = Path.Combine(_imagesFolder, "tags.tsv");
-        static readonly string _predictSingleImage = Path.Combine(_imagesFolder, "t485. 18.12.09.jpg");
+        static readonly string _predictSingleImage = Path.Combine(_imagesFolder, "t485. 09.20.53.jpg");
 
         static readonly string _imagesWithSquare = Path.Combine(_imagesFolder, "imagesWithSquare");
 
@@ -33,13 +33,13 @@ namespace VoidDetector
             _sectors = GetSectors();
             GenerateImageToPredict();
 
-            MLContext mlContext = new MLContext();
-            ITransformer model = GenerateModel(mlContext);
+            //MLContext mlContext = new MLContext();
+            //ITransformer model = GenerateModel(mlContext);
 
-            List<Results> results = ClassifyImage(mlContext, model);
+            //List<Results> results = ClassifyImage(mlContext, model);
 
-            PrintResults(results);
-            DrawSquares(results);
+            //PrintResults(results);
+            //DrawSquares(results);
 
             Console.Read();
 
@@ -152,28 +152,31 @@ namespace VoidDetector
             try
             {
                 results = results.Where(x => x.prediction == "empty").ToList();
-                Bitmap bitmap = Image.FromFile(_predictSingleImage) as Bitmap;
+
+                Bitmap src = Image.FromFile(_predictSingleImage) as Bitmap;
                 Pen pen = new Pen(Color.Red, 2);
-                using (Graphics g = Graphics.FromImage(bitmap))
+
+                Bitmap target = new Bitmap(1920, 1080);
+
+                using (Graphics g = Graphics.FromImage(target))
                 {
-                    foreach (Results res in results)
-                    {
-                        int x = lineal.sectors.Where(x => x.nomSector == res.name + ".jpg").Select(y => y.x).FirstOrDefault();
-                        int y = lineal.sectors.Where(x => x.nomSector == res.name + ".jpg").Select(y => y.y).FirstOrDefault();
-                        
-                        g.DrawRectangle(pen, new Rectangle(x, y, 60, 60));
-    
-                        //using (Graphics graphics = Graphics.FromImage(bitmap))
-                        //{
-                        //    using (System.Drawing.SolidBrush myBrush = new System.Drawing.SolidBrush(System.Drawing.Color.Red))
-                        //    {
-                        //        graphics.FillRectangle(myBrush, new Rectangle(x, y, 60, 60));
-                        //    }
-                        //}
-                    }
+                    g.DrawImage(src, new Rectangle(0, 0, target.Width, target.Height),new Rectangle(0, 0, target.Width, target.Height),GraphicsUnit.Pixel);
                 }
 
-                bitmap.Save(_imagesWithSquare + "\\result.jpg");
+                foreach (Results res in results)
+                {
+                    int x = lineal.sectors.Where(x => x.nomSector == res.name + ".jpg").Select(y => y.x).FirstOrDefault();
+                    int y = lineal.sectors.Where(x => x.nomSector == res.name + ".jpg").Select(y => y.y).FirstOrDefault();
+
+                    using (Graphics g = Graphics.FromImage(target))
+                    {
+                        g.DrawRectangle(pen, new Rectangle(x, y, 60, 60));
+                    }
+
+                }
+
+                target.Save(_myProjectPath + "\\assets\\imagesWithSquare\\resultat.jpg");
+
                 Console.WriteLine("a pintat gg");
             }
             catch (Exception ex)
