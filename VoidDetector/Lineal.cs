@@ -28,7 +28,7 @@ namespace VoidDetector
 
         public Sector(string nomSec)
         {
-            nomSector = nomSec + "_8.jpg";
+            nomSector = nomSec + ".jpg";
 
             width = 60;
             height = 60;

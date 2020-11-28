@@ -11,8 +11,7 @@ namespace VoidDetector
 {
     class Program
     {
-
-        static readonly string _myProjectPath = "D:\\Code\\HackEPS2020\\VoidDetector";
+        static readonly string _myProjectPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\..\\"));
         static readonly string _imageToProcessFolder = _myProjectPath + "\\assets\\imatgesToProcess";
         static readonly string _assetsPath = _myProjectPath + "\\assets";
 
@@ -33,13 +32,13 @@ namespace VoidDetector
             _sectors = GetSectors();
             GenerateImageToPredict();
 
-            //MLContext mlContext = new MLContext();
-            //ITransformer model = GenerateModel(mlContext);
+            MLContext mlContext = new MLContext();
+            ITransformer model = GenerateModel(mlContext);
 
-            //List<Results> results = ClassifyImage(mlContext, model);
+            List<Results> results = ClassifyImage(mlContext, model);
 
-            //PrintResults(results);
-            //DrawSquares(results);
+            PrintResults(results);
+            DrawSquares(results);
 
             Console.Read();
 
