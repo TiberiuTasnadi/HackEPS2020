@@ -14,7 +14,7 @@ namespace VoidDetector
     {
 
         static readonly string _myProjectPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\..\\"));
-        static readonly string _imageToProcessFolder = _myProjectPath + "\\assets\\imatgesToProcess";
+        static readonly string _imageToProcessFolder = Path.Combine(_myProjectPath, "imatgesToProcess");
         static readonly string _assetsPath = Path.Combine(_myProjectPath, "assets");
 
         static readonly string _imagesFolder = Path.Combine(_assetsPath, "images");
@@ -130,7 +130,7 @@ namespace VoidDetector
 
 
             System.IO.DirectoryInfo di = new DirectoryInfo(_imageToProcessFolder);
-            RemoveOldImages();
+            //RemoveOldImages();
 
             foreach (FileInfo fileImage in di.GetFiles())
             {
