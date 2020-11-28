@@ -14,7 +14,7 @@ namespace VoidDetector
     {
 
         static readonly string _myProjectPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\..\\"));
-        static readonly string  = Path.Combine(_myProjectPath, "assets");
+        static readonly string _assetsPath = Path.Combine(_myProjectPath, "assets");
         static readonly string _imageToProcessFolder = Path.Combine(_assetsPath, "imatgesToProcess");
 
 
