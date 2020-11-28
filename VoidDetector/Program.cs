@@ -12,22 +12,32 @@ namespace VoidDetector
     class Program
     {
 
-        static readonly string _assetsPath = Path.Combine(Environment.CurrentDirectory, "assets");
+        static readonly string _myProjectPath = "D:\\Code\\HackEPS2020\\VoidDetector";
+        static readonly string _imageToProcessFolder = _myProjectPath + "\\assets\\imatgesToProcess";
+        static readonly string _assetsPath = _myProjectPath + "\\assets";
         static readonly string _imagesFolder = Path.Combine(_assetsPath, "images");
         static readonly string _trainTagsTsv = Path.Combine(_imagesFolder, "tags.tsv");
         static readonly string _testTagsTsv = Path.Combine(_imagesFolder, "test-tags.tsv");
-        static readonly string _predictSingleImage = Path.Combine(_imagesFolder, "toaster3.jpg");
+        static readonly string _predictSingleImage = Path.Combine(_imagesFolder, "t485. 11.19.00.jpg");
         static readonly string _inceptionTensorFlowModel = Path.Combine(_assetsPath, "inception", "tensorflow_inception_graph.pb");
-
+        
         static void Main(string[] args)
         {
-            MLContext mlContext = new MLContext();
+            //MLContext mlContext = new MLContext();
 
-            ITransformer model = GenerateModel(mlContext);
+            //ITransformer model = GenerateModel(mlContext);
 
-            ClassifySingleImage(mlContext, model);
+            //ClassifySingleImage(mlContext, model);
 
             //CutImage(@"C:\Users\Tibi\Desktop\hack\fotos BonArr",0,0,1920,1080);
+
+            Lineal lineal = new Lineal();
+            List<Sector> sectors = GetXY();
+
+            lineal.sectors = sectors;
+            lineal.imagePath = _predictSingleImage;
+            
+            GenerateImageToPredict(lineal);
 
             Console.Read();
 
@@ -120,33 +130,97 @@ namespace VoidDetector
 
         }
 
-        private void CutImage(string path, int x, int y, int width, int height)
+        private static void GenerateImageToPredict(Lineal lineal)
         {
-
-            Rectangle cropRect = new Rectangle(x, y, width, height);
-
-            Bitmap src = Image.FromFile(path) as Bitmap;
-            Bitmap target = new Bitmap(cropRect.Width, cropRect.Height);
-
-            using (Graphics graphics = Graphics.FromImage(target))
+            try
             {
-                using (System.Drawing.SolidBrush myBrush = new System.Drawing.SolidBrush(System.Drawing.Color.Red))
+                RemoveOldImages();
+
+                foreach (Sector sec in lineal.sectors)
                 {
-                    graphics.FillRectangle(myBrush, new Rectangle(0, 0, 200, 300));
+                    Rectangle cropRect = new Rectangle(sec.x, sec.y, sec.width, sec.height);
+
+                    Bitmap src = Image.FromFile(lineal.imagePath) as Bitmap;
+                    Bitmap target = new Bitmap(cropRect.Width, cropRect.Height);
+
+                    //using (Graphics graphics = Graphics.FromImage(target))
+                    //{
+                    //    using (System.Drawing.SolidBrush myBrush = new System.Drawing.SolidBrush(System.Drawing.Color.Red))
+                    //    {
+                    //        graphics.FillRectangle(myBrush, new Rectangle(0, 0, 200, 300));
+
+                    //    }
+                    //    target.Save("test");
+                    //}
+
+                    using (Graphics g = Graphics.FromImage(target))
+                    {
+                        g.DrawImage(src, new Rectangle(0, 0, target.Width, target.Height),
+                                         cropRect,
+                                         GraphicsUnit.Pixel);
+                    }
+                    
+                    target.Save(_myProjectPath + "\\assets\\imatgesToProcess\\" + sec.nomSector);
 
                 }
-                target.Save("test");
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine("burro");
+            }
+            
+        }
 
+        private static void RemoveOldImages()
+        {
+            System.IO.DirectoryInfo di = new DirectoryInfo(_imageToProcessFolder);
 
-            //    using (Graphics g = Graphics.FromImage(target))
-            //{
-            //    g.DrawImage(src, new Rectangle(0, 0, target.Width, target.Height),
-            //                     cropRect,
-            //                     GraphicsUnit.Pixel);
-            //}
+            foreach (FileInfo file in di.GetFiles())
+            {
+                file.Delete();
+            }
+        }
 
-            //target.Save("test",ImageFormat.Jpeg);
+        private static List<Sector> GetXY()
+        {
+            List<Sector> sectors = new List<Sector>();
+
+            for (int i = 1; i<21; i++)
+            {
+                if (i<=13)
+                {
+                    sectors.Add(new Sector("A" + i));
+                    sectors.Add(new Sector("B" + i));
+                    sectors.Add(new Sector("C" + i));
+                    sectors.Add(new Sector("D" + i));
+                    sectors.Add(new Sector("E" + i));
+                    continue;
+                }
+
+                if (i<=15)
+                {
+                    sectors.Add(new Sector("A" + i));
+                    sectors.Add(new Sector("B" + i));
+                    sectors.Add(new Sector("C" + i));
+                    sectors.Add(new Sector("D" + i));
+                    continue;
+                }
+
+                if (i<=16)
+                {
+                    sectors.Add(new Sector("B" + i));
+                    sectors.Add(new Sector("C" + i));
+                    continue;
+                }
+
+                if (i<=20)
+                {
+                    sectors.Add(new Sector("B" + i));
+                    continue;
+                }
+            }
+           
+            return sectors;
 
         }
     }
