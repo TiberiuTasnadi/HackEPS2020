@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 
@@ -14,9 +15,13 @@ namespace VoidDetector
 
         static readonly string _myProjectPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\..\\"));
         static readonly string _imageToProcessFolder = _myProjectPath + "\\assets\\imatgesToProcess";
-        static readonly string _assetsPath = _myProjectPath + "\\assets";
+        static readonly string _assetsPath = Path.Combine(_myProjectPath, "assets");
 
         static readonly string _imagesFolder = Path.Combine(_assetsPath, "images");
+        static readonly string _fullFolder = Path.Combine(_assetsPath, "full");
+        static readonly string _emptyFolder = Path.Combine(_assetsPath, "empty");
+        static readonly string _obstructionFolder = Path.Combine(_assetsPath, "obstruction");
+
         static readonly string _trainTagsTsv = Path.Combine(_assetsPath, "tags.tsv");
         static readonly string _predictSingleImage = Path.Combine(_imagesFolder, "t485. 09.20.53.jpg");
 
@@ -31,15 +36,15 @@ namespace VoidDetector
         {
 
             _sectors = GetSectors();
-            GenerateImageToPredict();
+            //GenerateImageToPredict();
+            CreateTagList();
+            MLContext mlContext = new MLContext();
+            ITransformer model = GenerateModel(mlContext);
 
-            //MLContext mlContext = new MLContext();
-            //ITransformer model = GenerateModel(mlContext);
+            List<Results> results = ClassifyImage(mlContext, model);
 
-            //List<Results> results = ClassifyImage(mlContext, model);
-
-            //PrintResults(results);
-            //DrawSquares(results);
+            PrintResults(results);
+            DrawSquares(results);
 
             Console.Read();
 
@@ -72,7 +77,7 @@ namespace VoidDetector
 
         public static ITransformer GenerateModel(MLContext mlContext)
         {
-            IEstimator<ITransformer> pipeline = mlContext.Transforms.LoadImages(outputColumnName: "input", imageFolder: _imagesFolder, inputColumnName: nameof(ImageData.ImagePath))
+            IEstimator<ITransformer> pipeline = mlContext.Transforms.LoadImages(outputColumnName: "input", imageFolder: _assetsPath, inputColumnName: nameof(ImageData.ImagePath))
                             // The image transforms transform the images into the model's expected format.
                             .Append(mlContext.Transforms.ResizeImages(outputColumnName: "input", imageWidth: InceptionSettings.ImageWidth, imageHeight: InceptionSettings.ImageHeight, inputColumnName: "input"))
                             .Append(mlContext.Transforms.ExtractPixels(outputColumnName: "input", interleavePixelColors: InceptionSettings.ChannelsLast, offsetImage: InceptionSettings.Mean))
@@ -122,17 +127,23 @@ namespace VoidDetector
         public static List<Results> ClassifyImage(MLContext mlContext, ITransformer model)
         {
             List<Results> res = new List<Results>();
-            foreach (string sec in _sectors)
+
+
+            System.IO.DirectoryInfo di = new DirectoryInfo(_imageToProcessFolder);
+            RemoveOldImages();
+
+            foreach (FileInfo fileImage in di.GetFiles())
             {
+                Console.WriteLine("Classifing " + fileImage.FullName);
                 var imageData = new ImageData()
                 {
-                    ImagePath = _imageToProcessFolder + "\\" + sec + ".jpg"
+                    ImagePath = fileImage.FullName
                 };
 
                 var predictor = mlContext.Model.CreatePredictionEngine<ImageData, ImagePrediction>(model);
                 var prediction = predictor.Predict(imageData);
-                res.Add(new Results { name = sec, prediction = prediction.PredictedLabelValue, score = (prediction.Score.Max() * 100) });
-                //Console.WriteLine($"Image: {Path.GetFileName(imageData.ImagePath)} predicted as: {prediction.PredictedLabelValue} with score: {prediction.Score.Max()} ");
+                res.Add(new Results { name = fileImage.Name, prediction = prediction.PredictedLabelValue, score = (prediction.Score.Max() * 100) });
+                Console.WriteLine($"Image: {Path.GetFileName(imageData.ImagePath)} predicted as: {prediction.PredictedLabelValue} with score: {prediction.Score.Max()} ");
             }
             return res;
         }
@@ -225,6 +236,39 @@ namespace VoidDetector
             catch (Exception ex)
             {
                 Console.WriteLine("burro "+ ex.Message);
+            }
+
+        }
+
+        private static void CreateTagList()
+        {
+            try
+            {
+                Console.WriteLine("Generating Tag File");
+                StringBuilder sb_tags = new StringBuilder();
+                System.IO.DirectoryInfo full_dir = new DirectoryInfo(_fullFolder);
+                System.IO.DirectoryInfo empty_dir = new DirectoryInfo(_emptyFolder);
+                System.IO.DirectoryInfo obstruction_dir = new DirectoryInfo(_obstructionFolder);
+
+                foreach (FileInfo file in full_dir.GetFiles())
+                {
+                    sb_tags.AppendLine("full\\" + file.Name + "\t" + "full");
+                }
+                foreach (FileInfo file in empty_dir.GetFiles())
+                {
+                    sb_tags.AppendLine("empty\\" + file.Name + "\t" + "empty");
+                }
+                foreach (FileInfo file in obstruction_dir.GetFiles())
+                {
+                    sb_tags.AppendLine("obstruction\\" + file.Name + "\t" + "obstruction");
+                }
+                System.IO.File.WriteAllText(_trainTagsTsv, sb_tags.ToString());
+
+                Console.WriteLine("Tag File Generated");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("burro " + ex.Message);
             }
 
         }
