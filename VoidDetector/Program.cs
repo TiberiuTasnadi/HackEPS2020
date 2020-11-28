@@ -18,11 +18,14 @@ namespace VoidDetector
 
         static readonly string _imagesFolder = Path.Combine(_assetsPath, "images");
         static readonly string _trainTagsTsv = Path.Combine(_imagesFolder, "tags.tsv");
-        static readonly string _predictSingleImage = Path.Combine(_imagesFolder, "t485. 20.28.54.jpg");
-        
+        static readonly string _predictSingleImage = Path.Combine(_imagesFolder, "t485. 18.12.09.jpg");
+
+        static readonly string _imagesWithSquare = Path.Combine(_imagesFolder, "imagesWithSquare");
+
         static readonly string _inceptionTensorFlowModel = Path.Combine(_assetsPath, "inception", "tensorflow_inception_graph.pb");
 
         static List<string> _sectors;
+        static Lineal lineal = new Lineal();
 
         static void Main(string[] args)
         {
@@ -36,6 +39,7 @@ namespace VoidDetector
             List<Results> results = ClassifyImage(mlContext, model);
 
             PrintResults(results);
+            DrawSquares(results);
 
             Console.Read();
 
@@ -117,17 +121,17 @@ namespace VoidDetector
 
         public static List<Results> ClassifyImage(MLContext mlContext, ITransformer model)
         {
-            List<Results>res = new List<Results>();
+            List<Results> res = new List<Results>();
             foreach (string sec in _sectors)
             {
                 var imageData = new ImageData()
                 {
                     ImagePath = _imageToProcessFolder + "\\" + sec + ".jpg"
                 };
-               
+
                 var predictor = mlContext.Model.CreatePredictionEngine<ImageData, ImagePrediction>(model);
                 var prediction = predictor.Predict(imageData);
-                res.Add(new Results { name = sec, prediction = prediction.PredictedLabelValue , score = (prediction.Score.Max()*100)});
+                res.Add(new Results { name = sec, prediction = prediction.PredictedLabelValue, score = (prediction.Score.Max() * 100) });
                 //Console.WriteLine($"Image: {Path.GetFileName(imageData.ImagePath)} predicted as: {prediction.PredictedLabelValue} with score: {prediction.Score.Max()} ");
             }
             return res;
@@ -143,11 +147,47 @@ namespace VoidDetector
             }
         }
 
+        public static void DrawSquares(List<Results> results)
+        {
+            try
+            {
+                results = results.Where(x => x.prediction == "empty").ToList();
+                Bitmap bitmap = Image.FromFile(_predictSingleImage) as Bitmap;
+                Pen pen = new Pen(Color.Red, 2);
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    foreach (Results res in results)
+                    {
+                        int x = lineal.sectors.Where(x => x.nomSector == res.name + ".jpg").Select(y => y.x).FirstOrDefault();
+                        int y = lineal.sectors.Where(x => x.nomSector == res.name + ".jpg").Select(y => y.y).FirstOrDefault();
+                        
+                        g.DrawRectangle(pen, new Rectangle(x, y, 60, 60));
+    
+                        //using (Graphics graphics = Graphics.FromImage(bitmap))
+                        //{
+                        //    using (System.Drawing.SolidBrush myBrush = new System.Drawing.SolidBrush(System.Drawing.Color.Red))
+                        //    {
+                        //        graphics.FillRectangle(myBrush, new Rectangle(x, y, 60, 60));
+                        //    }
+                        //}
+                    }
+                }
+
+                bitmap.Save(_imagesWithSquare + "\\result.jpg");
+                Console.WriteLine("a pintat gg");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("no pinta...");
+            }
+
+        }
+
+
         private static void GenerateImageToPredict()
         {
             try
             {
-                Lineal lineal = new Lineal();
                 List<Sector> sectors = GetXY();
 
                 lineal.sectors = sectors;
@@ -193,8 +233,8 @@ namespace VoidDetector
         private static List<Sector> GetXY()
         {
             List<Sector> sectors = new List<Sector>();
-            
-            foreach(string sec in _sectors)
+
+            foreach (string sec in _sectors)
             {
                 sectors.Add(new Sector(sec));
             }
@@ -241,8 +281,8 @@ namespace VoidDetector
                 }
             }
             return sectors;
-        }       
-       
+        }
+
         public class Results
         {
             public string name { get; set; }
