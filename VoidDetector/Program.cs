@@ -9,39 +9,58 @@ using Microsoft.ML.Data;
 
 namespace VoidDetector
 {
-    class Program
+    public class Program
     {
-        static readonly string _myProjectPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\..\\"));
+
+        static readonly string _myProjectPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\..\\..\\VoidDetector"));
+
         static readonly string _imageToProcessFolder = _myProjectPath + "\\assets\\imatgesToProcess";
         static readonly string _assetsPath = _myProjectPath + "\\assets";
 
         static readonly string _imagesFolder = Path.Combine(_assetsPath, "images");
         static readonly string _trainTagsTsv = Path.Combine(_imagesFolder, "tags.tsv");
-        static readonly string _predictSingleImage = Path.Combine(_imagesFolder, "t485. 09.20.53.jpg");
 
-        static readonly string _imagesWithSquare = Path.Combine(_imagesFolder, "imagesWithSquare");
+        //static readonly string _predictSingleImage = Path.Combine(_imagesFolder, "t485. 09.20.53.jpg");
+        //static readonly string _imagesWithSquare = Path.Combine(_imagesFolder, "imagesWithSquare");
 
         static readonly string _inceptionTensorFlowModel = Path.Combine(_assetsPath, "inception", "tensorflow_inception_graph.pb");
 
         static List<string> _sectors;
         static Lineal lineal = new Lineal();
 
-        static void Main(string[] args)
+        public static List<Results> Start(string file)
         {
+            file = Path.Combine(_imagesFolder, file);
 
             _sectors = GetSectors();
-            GenerateImageToPredict();
+            GenerateImageToPredict(file);
 
             MLContext mlContext = new MLContext();
             ITransformer model = GenerateModel(mlContext);
 
             List<Results> results = ClassifyImage(mlContext, model);
 
-            PrintResults(results);
-            DrawSquares(results);
+            //PrintResults(results);
+            DrawSquares(results, file);
+
+            return results;
+
+        }
+        static void Main(string[] args)
+        {
+
+            //_sectors = GetSectors();
+            //GenerateImageToPredict();
+
+            //MLContext mlContext = new MLContext();
+            //ITransformer model = GenerateModel(mlContext);
+
+            //List<Results> results = ClassifyImage(mlContext, model);
+
+            //PrintResults(results);
+            //DrawSquares(results);
 
             Console.Read();
-
         }
 
         public class ImageData
@@ -84,18 +103,6 @@ namespace VoidDetector
 
             IDataView trainingData = mlContext.Data.LoadFromTextFile<ImageData>(path: _trainTagsTsv, hasHeader: false);
             ITransformer model = pipeline.Fit(trainingData);
-
-            //IDataView testData = mlContext.Data.LoadFromTextFile<ImageData>(path: _testTagsTsv, hasHeader: false);
-            //IDataView predictions = model.Transform(testData);
-
-            //// Create an IEnumerable for the predictions for displaying results
-            //IEnumerable<ImagePrediction> imagePredictionData = mlContext.Data.CreateEnumerable<ImagePrediction>(predictions, true);
-            //DisplayResults(imagePredictionData);
-
-            //MulticlassClassificationMetrics metrics = mlContext.MulticlassClassification.Evaluate(predictions, labelColumnName: "LabelKey", predictedLabelColumnName: "PredictedLabel");
-
-            //Console.WriteLine($"LogLoss is: {metrics.LogLoss}");
-            //Console.WriteLine($"PerClassLogLoss is: {String.Join(" , ", metrics.PerClassLogLoss.Select(c => c.ToString()))}");
 
             return model;
 
@@ -146,20 +153,20 @@ namespace VoidDetector
             }
         }
 
-        public static void DrawSquares(List<Results> results)
+        public static void DrawSquares(List<Results> results, string file)
         {
             try
             {
                 results = results.Where(x => x.prediction == "empty").ToList();
 
-                Bitmap src = Image.FromFile(_predictSingleImage) as Bitmap;
+                Bitmap src = Image.FromFile(file) as Bitmap;
                 Pen pen = new Pen(Color.Red, 2);
 
                 Bitmap target = new Bitmap(1920, 1080);
 
                 using (Graphics g = Graphics.FromImage(target))
                 {
-                    g.DrawImage(src, new Rectangle(0, 0, target.Width, target.Height),new Rectangle(0, 0, target.Width, target.Height),GraphicsUnit.Pixel);
+                    g.DrawImage(src, new Rectangle(0, 0, target.Width, target.Height), new Rectangle(0, 0, target.Width, target.Height), GraphicsUnit.Pixel);
                 }
 
                 foreach (Results res in results)
@@ -173,8 +180,8 @@ namespace VoidDetector
                     }
 
                 }
-
-                target.Save(_myProjectPath + "\\assets\\imagesWithSquare\\resultat.jpg");
+                string path = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\..\\wwwroot\\img\\resultat.jpg"));
+                target.Save(path);
 
                 Console.WriteLine("a pintat gg");
             }
@@ -186,14 +193,14 @@ namespace VoidDetector
         }
 
 
-        private static void GenerateImageToPredict()
+        private static void GenerateImageToPredict(string file)
         {
             try
             {
                 List<Sector> sectors = GetXY();
 
                 lineal.sectors = sectors;
-                lineal.imagePath = _predictSingleImage;
+                lineal.imagePath = file;
 
                 RemoveOldImages();
 
@@ -284,13 +291,5 @@ namespace VoidDetector
             }
             return sectors;
         }
-
-        public class Results
-        {
-            public string name { get; set; }
-            public string prediction { get; set; }
-            public float score { get; set; }
-        }
-
     }
 }
