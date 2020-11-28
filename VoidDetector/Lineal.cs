@@ -126,7 +126,7 @@ namespace VoidDetector
                    
                     break;
                 case "B4":
-                    x = 79;
+                    x = 69;
                     y = 927;
                    
                     break;
