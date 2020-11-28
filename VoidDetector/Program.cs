@@ -12,12 +12,12 @@ namespace VoidDetector
     class Program
     {
 
-        static readonly string _myProjectPath = "D:\\Code\\HackEPS2020\\VoidDetector";
+        static readonly string _myProjectPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\..\\"));
         static readonly string _imageToProcessFolder = _myProjectPath + "\\assets\\imatgesToProcess";
         static readonly string _assetsPath = _myProjectPath + "\\assets";
 
         static readonly string _imagesFolder = Path.Combine(_assetsPath, "images");
-        static readonly string _trainTagsTsv = Path.Combine(_imagesFolder, "tags.tsv");
+        static readonly string _trainTagsTsv = Path.Combine(_assetsPath, "tags.tsv");
         static readonly string _predictSingleImage = Path.Combine(_imagesFolder, "t485. 09.20.53.jpg");
 
         static readonly string _imagesWithSquare = Path.Combine(_imagesFolder, "imagesWithSquare");
@@ -193,32 +193,38 @@ namespace VoidDetector
             {
                 List<Sector> sectors = GetXY();
 
-                lineal.sectors = sectors;
-                lineal.imagePath = _predictSingleImage;
-
+                System.IO.DirectoryInfo di = new DirectoryInfo(_imagesFolder);
                 RemoveOldImages();
 
-                foreach (Sector sec in lineal.sectors)
+                foreach (FileInfo fileImage in di.GetFiles())
                 {
-                    Rectangle cropRect = new Rectangle(sec.x, sec.y, sec.width, sec.height);
+                    Console.WriteLine("Procesing image " + fileImage.FullName); 
+
+                    lineal.sectors = sectors;
+                    lineal.imagePath = fileImage.FullName;
 
                     Bitmap src = Image.FromFile(lineal.imagePath) as Bitmap;
-                    Bitmap target = new Bitmap(cropRect.Width, cropRect.Height);
 
-                    using (Graphics g = Graphics.FromImage(target))
+                    foreach (Sector sec in sectors)
                     {
-                        g.DrawImage(src, new Rectangle(0, 0, target.Width, target.Height),
-                                         cropRect,
-                                         GraphicsUnit.Pixel);
+                        Rectangle cropRect = new Rectangle(sec.x, sec.y, sec.width, sec.height);
+                        using Bitmap target = new Bitmap(cropRect.Width, cropRect.Height) as Bitmap;
+
+                        using (Graphics g = Graphics.FromImage(target))
+                        {
+                            g.DrawImage(src, new Rectangle(0, 0, target.Width, target.Height),
+                                             cropRect,
+                                             GraphicsUnit.Pixel);
+                        }
+
+                        target.Save(_myProjectPath + "\\assets\\imatgesToProcess\\" + Path.GetFileNameWithoutExtension(fileImage.Name) + "_" + sec.nomSector);
                     }
-
-                    target.Save(_myProjectPath + "\\assets\\imatgesToProcess\\" + sec.nomSector);
                 }
-
+                Console.WriteLine("Finished Generating Images");
             }
             catch (Exception ex)
             {
-                Console.WriteLine("burro");
+                Console.WriteLine("burro "+ ex.Message);
             }
 
         }
