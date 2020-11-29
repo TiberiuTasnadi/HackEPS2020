@@ -1,0 +1,40 @@
+﻿@model Web.Models.ResumViewModel
+
+@{
+    ViewData["Title"] = "Result";
+}
+<div>
+    <h2 style="margin-left:5%;display:inline-block;">Result</h2>
+    <a style="display:inline-block; margin-left:2%" href="@Url.Action("Index", "Home")">Back</a>
+</div>
+
+<section class="container">
+    <hr style="border: solid 0.5px;" />
+    <div class="one">
+        <img style="width: 75%; height: 75%;" src="~/img/resultat.jpg" />
+
+        <dl class="dl-horizontal">
+            <dt>
+                @Html.DisplayNameFor(model => model.FileName)
+            </dt>
+            <dd>
+                @Html.DisplayFor(model => model.FileName)
+            </dd>
+            <dt>
+                @Html.DisplayNameFor(model => model.Empty)
+            </dt>
+            <dd>
+                @Html.DisplayFor(model => model.Empty)
+            </dd>
+            <dt>
+                @Html.DisplayNameFor(model => model.Obstruction)
+            </dt>
+            <dd>
+                @Html.DisplayFor(model => model.ObstructionStr)
+            </dd>
+        </dl>
+
+    </div>
+    <div class="one">
+    </div>
+</section>
