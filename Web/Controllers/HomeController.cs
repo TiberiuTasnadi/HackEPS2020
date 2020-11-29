@@ -29,10 +29,11 @@ namespace Web.Controllers
             ResumViewModel resumViewModel = new ResumViewModel(results);
 
             resumViewModel.FileName = file[0].FileName;
-            resumViewModel.Obstruction = results.Where(x => x.prediction == "obstruction").Count();
+            resumViewModel.Obstruction = Convert.ToInt32(results.Where(x => x.prediction == "obstruction").Count() * 100 / 79);
             resumViewModel.ObstructionStr = resumViewModel.Obstruction > 0 ? "Si" : "No";
             resumViewModel.Empty = results.Where(x => x.prediction == "empty").Count();
-            resumViewModel.Full = results.Where(x => x.prediction == "full").Count();
+            resumViewModel.EmptyPercent = Convert.ToInt32(results.Where(x => x.prediction == "empty").Count() * 100 / 79);
+            resumViewModel.Full = Convert.ToInt32(results.Where(x => x.prediction == "full").Count()* 100 / 79);
 
             return View(resumViewModel);
         }

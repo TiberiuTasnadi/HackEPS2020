@@ -3,6 +3,28 @@
 @{
     ViewData["Title"] = "Result";
 }
+
+
+
+<style>
+    .piechart {        
+        float: right;
+        display: block;
+        position: relative;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background-image: conic-gradient( red @Model.EmptyPercent%, lightblue 0 @Model.Full%, orange 0 @Model.Obstruction%);
+    }
+
+    body,
+    .piechart {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+</style>
+
 <div>
     <h2 style="margin-left:5%;display:inline-block;">Result</h2>
     <a style="display:inline-block; margin-left:2%" href="@Url.Action("Index", "Home")">Back</a>
@@ -12,6 +34,14 @@
     <hr style="border: solid 0.5px;" />
     <div class="one">
         <img style="width: 75%; height: 75%;" src="~/img/resultat.jpg" />
+
+        <div class="piechart">
+            <ul style="margin-top:300px">
+                <li style="color:red">Empty</li>
+                <li style="color:blue">Full</li>
+                <li style="color:orange">Obstructed</li>
+            </ul>
+        </div>
 
         <dl class="dl-horizontal">
             <dt>
@@ -35,6 +65,30 @@
         </dl>
 
     </div>
+    <hr style="border: solid 0.5px;" />
+    <table style="width:100%">
+        <tr>
+            <th>Position</th>
+            <th>State</th>
+            <th>Accuracy</th>
+        </tr>
+        @for (int i = 0; i < Model.Results.Count(); i++)
+        {
+            <tr>
+                <td>@Model.Results.ElementAt(i).name</td>
+                <td>@Model.Results.ElementAt(i).prediction</td>
+                <td> @Model.Results.ElementAt(i).score</td>
+            </tr>
+        }
+
+    </table>
+
+    <div>
+
+    </div>
+
     <div class="one">
     </div>
 </section>
+
+
