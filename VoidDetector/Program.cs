@@ -38,6 +38,7 @@ namespace VoidDetector
 
             _sectors = GetSectors();
             //GenerateImageToPredict();
+            //GenerateMultipleImageToPredict();
             CreateTagList();
             MLContext mlContext = new MLContext();
             ITransformer model = GenerateModel(mlContext);
@@ -198,8 +199,43 @@ namespace VoidDetector
 
         }
 
+        private static void GenerateImageToPredict(string file)
+        {
+            try
+            {
+                List<Sector> sectors = GetXY();
 
-        private static void GenerateImageToPredict()
+                lineal.sectors = sectors;
+                lineal.imagePath = file;
+
+                RemoveOldImages();
+
+                foreach (Sector sec in lineal.sectors)
+                {
+                    Rectangle cropRect = new Rectangle(sec.x, sec.y, sec.width, sec.height);
+
+                    Bitmap src = Image.FromFile(lineal.imagePath) as Bitmap;
+                    Bitmap target = new Bitmap(cropRect.Width, cropRect.Height);
+
+                    using (Graphics g = Graphics.FromImage(target))
+                    {
+                        g.DrawImage(src, new Rectangle(0, 0, target.Width, target.Height),
+                                         cropRect,
+                                         GraphicsUnit.Pixel);
+                    }
+
+                    target.Save(_myProjectPath + "\\assets\\imatgesToProcess\\" + sec.nomSector);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("burro");
+            }
+
+        }
+
+        private static void GenerateMultipleImageToPredict()
         {
             try
             {
