@@ -33,7 +33,7 @@ namespace Web.Controllers
             resumViewModel.ObstructionStr = resumViewModel.Obstruction > 0 ? "Si" : "No";
             resumViewModel.Empty = results.Where(x => x.prediction == "empty").Count();
             resumViewModel.EmptyPercent = Convert.ToInt32(results.Where(x => x.prediction == "empty").Count() * 100 / 79);
-            resumViewModel.Full = Convert.ToInt32(results.Where(x => x.prediction == "full").Count()* 100 / 79);
+            resumViewModel.Full = Convert.ToInt32(results.Where(x => x.prediction == "full").Count()* 100 / 79) + resumViewModel.EmptyPercent;
 
             return View(resumViewModel);
         }

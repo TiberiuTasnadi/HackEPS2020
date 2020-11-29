@@ -4,8 +4,6 @@
     ViewData["Title"] = "Result";
 }
 
-
-
 <style>
     .piechart {        
         float: right;
@@ -14,7 +12,7 @@
         width: 200px;
         height: 200px;
         border-radius: 50%;
-        background-image: conic-gradient( red @Model.EmptyPercent%, lightblue 0 @Model.Full%, orange 0 @Model.Obstruction%);
+        background-image: conic-gradient( red @Model.EmptyPercent%, lightblue 0 @Model.Full%);
     }
 
     body,
@@ -23,6 +21,7 @@
         justify-content: center;
         align-items: center;
     }
+    
 </style>
 
 <div>
@@ -39,7 +38,6 @@
             <ul style="margin-top:300px">
                 <li style="color:red">Empty</li>
                 <li style="color:blue">Full</li>
-                <li style="color:orange">Obstructed</li>
             </ul>
         </div>
 
@@ -77,7 +75,7 @@
             <tr>
                 <td>@Model.Results.ElementAt(i).name</td>
                 <td>@Model.Results.ElementAt(i).prediction</td>
-                <td> @Model.Results.ElementAt(i).score</td>
+                <td> @Model.Results.ElementAt(i).score%</td>
             </tr>
         }
 
