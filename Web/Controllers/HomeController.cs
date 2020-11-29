@@ -17,6 +17,7 @@ namespace Web.Controllers
 
         public IActionResult Index()
         {
+            VoidDetector.Program.Learn();
             return View();
         }
 

@@ -25,7 +25,6 @@ namespace VoidDetector
         static readonly string _trainTagsTsv = Path.Combine(_assetsPath, "tags.tsv");
         static readonly string _predictSingleImage = Path.Combine(_imagesFolder, "t485. 09.20.53.jpg");
 
-
         //static readonly string _predictSingleImage = Path.Combine(_imagesFolder, "t485. 09.20.53.jpg");
         //static readonly string _imagesWithSquare = Path.Combine(_imagesFolder, "imagesWithSquare");
 
@@ -34,16 +33,24 @@ namespace VoidDetector
         static List<string> _sectors;
         static Lineal lineal = new Lineal();
 
+        public static MLContext mlContext = new MLContext();
+        static ITransformer model;
+
+        public static void Learn()
+        {
+            if (model == null)
+            {
+                model = GenerateModel(mlContext);
+            }           
+        }
+
         public static List<Results> Start(string file)
         {
             file = Path.Combine(_imagesFolder, file);
 
             _sectors = GetSectors();
             GenerateImageToPredict(file);
-
-            MLContext mlContext = new MLContext();
-            ITransformer model = GenerateModel(mlContext);
-
+                       
             List<Results> results = ClassifyImage(mlContext, model);
 
             //PrintResults(results);
@@ -136,18 +143,16 @@ namespace VoidDetector
             System.IO.DirectoryInfo di = new DirectoryInfo(_imageToProcessFolder);
             //RemoveOldImages();
 
-            foreach (FileInfo fileImage in di.GetFiles())
+            foreach (string sec in _sectors)
             {
-                Console.WriteLine("Classifing " + fileImage.FullName);
                 var imageData = new ImageData()
                 {
-                    ImagePath = fileImage.FullName
+                    ImagePath = _imageToProcessFolder + "\\" + sec + ".jpg"
                 };
 
                 var predictor = mlContext.Model.CreatePredictionEngine<ImageData, ImagePrediction>(model);
                 var prediction = predictor.Predict(imageData);
-                res.Add(new Results { name = fileImage.Name, prediction = prediction.PredictedLabelValue, score = (prediction.Score.Max() * 100) });
-                Console.WriteLine($"Image: {Path.GetFileName(imageData.ImagePath)} predicted as: {prediction.PredictedLabelValue} with score: {prediction.Score.Max()} ");
+                res.Add(new Results { name = sec, prediction = prediction.PredictedLabelValue, score = (prediction.Score.Max() * 100) });                
             }
             return res;
         }
